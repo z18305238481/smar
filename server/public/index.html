@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="./css/bootstrap.css">
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/popper.min.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        box-sizing: border-box;
+    }
+
+    .startSpider {
+        margin-top: 15px;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    span {
+        display: block;
+        margin: 5px 0;
+    }
+
+    .list-info {
+        margin-top: 20px;
+    }
+</style>
+<body>
+
+
+<div class="container p-0">
+    <h1>测试</h1>
+    <div class="search">
+        <span>查询关键字：</span><input type='text' class="form-control qt" name="qt"/>
+        <span>起始日期：</span><input type="date" name="beginTime" class="form-control beginTime" value="2019-01-01">
+        <button class="startSpider btn btn-primary w-100">启动爬虫</button>
+    </div>
+    <div class="list-info">
+        <h3>任务队列</h3>
+        <table id="table1" class="table text-center table-striped table-hover">
+            <thead>
+            <tr>
+                <td>id</td>
+                <td>关键字</td>
+                <td>批次号</td>
+                <td>爬虫启动时间</td>
+                <td>起始时间</td>
+                <td>结束时间</td>
+                <td>状态</td>
+            </tr>
+            </thead>
+            <tbody id="tbody1"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    $(".startSpider").click(function (e) {
+        let timestamp = (new Date()).valueOf();
+        $qt = $(".qt").val();
+        $beginTime = $(".beginTime").val();
+        $.ajax({
+            type: "post", //提交方式
+            url: "/spider",
+            dataType: "json",
+            data: {
+                qt: $qt,
+                beginTime: $beginTime,
+                batchNumber: timestamp
+            },
+            success: function (result) {
+                alert(result.msg);
+                getInfo()
+            },
+            error: function (e) {
+                console.log(e.status);
+                console.log(e.responseText);
+            }
+        })
+    });
+
+    function getInfo() {
+        let tbody = document.getElementById("tbody1");
+        tbody.innerHTML = "";
+        $.ajax({
+            type: "post",
+            url: "/info",
+            dataType: "json",
+            data: {},
+            success: function (result) {
+                for (let item of result) {
+                    let tr = tbody.insertRow();
+                    for (let i in item) {
+                        let td = tr.insertCell();
+                        if (i == 'flag') {
+                            let a = document.createElement("a");
+                            a.href='javascript:false';
+                            if (item[i]==0){
+                                a.classList="bage badge-danger badge-pill"
+                                a.innerHTML="进行中"
+                            }else {
+                                a.classList="bage badge-success badge-pill"
+                                a.innerHTML="已完成"
+                            }
+                            td.appendChild(a)
+                        } else {
+                            td.innerHTML = item[i];
+                        }
+                    }
+
+                }
+            },
+            error: function (e) {
+                console.log(e.status);
+                console.log(e.responseText);
+            }
+        });
+        table1.appendChild(tbody); //table 下追加tbody
+    }
+
+    $(document).ready(getInfo);
+
+</script>
+</body>
+</html>
